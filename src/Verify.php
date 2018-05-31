@@ -28,7 +28,7 @@ class Verify {
      * Verify constructor.
      * @param array $data
      */
-    public function __construct(array $data = [], array $rules) {
+    public function __construct(array $data = [], array $rules = []) {
         $this->checkData = $data;
         $this->checkRules = $rules;
     }
@@ -47,12 +47,12 @@ class Verify {
     /**
      * 添加规则
      * @param string $key
-     * @param $rule
-     * @return Verify
+     * @param array $rule
+     * @return Rule
      */
-    public function addRule(string $key, $rule): Verify {
-        $this->checkRules[$key] = $rule;
-        return $this;
+    public function addRule(string $key, array $rule = []): Rule {
+        $this->checkRules[$key] = new Rule($rule);
+        return $this->checkRules[$key];
     }
 
     /**
@@ -62,13 +62,12 @@ class Verify {
     public function check(): bool {
         //遍历规则
         foreach ($this->checkRules as $key => $item) {
-            $rule = new Rule($item, $this->checkData[$key] ?? '');
-            if (!$rule->check()) {
-                $this->errorRule = $rule;
+            if (!$item->check($this->checkData[$key] ?? '')) {
+                $this->errorRule = $item->getErrorMsg();
                 return false;
             }
-            // TODO: 不知道是手动释放内存好还是等系统自动释放好,先标记
         }
+        return true;
     }
 
 }
