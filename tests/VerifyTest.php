@@ -3,6 +3,7 @@
 
 namespace HuanL\Verify\Tests;
 
+use HuanL\Verify\Rule;
 use HuanL\Verify\Verify;
 use PHPUnit\Framework\TestCase;
 
@@ -21,6 +22,46 @@ class VerifyTest extends TestCase {
         $this->verify = new Verify();
     }
 
+    public function testMultiRule() {
+        $this->verify->addData([
+            'empty' => '123', 'user' => 'aaa'
+        ]);
+        $this->verify->addRule([
+            'empty' => ['empty' => [false, '233']],
+            'user' => ['empty' => false]
+        ]);
+        self::assertEquals($this->verify->check(), true);
+        self::assertEquals(sizeof($this->verify->getErrorList()), 0);
+        self::assertEquals($this->verify->getLastError(), null);
+    }
+
+    public function testMultiRule1() {
+        $this->verify->addData([
+            'empty' => '', 'user' => 'aaa'
+        ]);
+        $this->verify->addRule([
+            'empty' => ['empty' => [false, '233']],
+            'user' => ['empty' => false]
+        ]);
+        self::assertEquals($this->verify->check(), false);
+        self::assertEquals(sizeof($this->verify->getErrorList()), 1);
+        self::assertEquals($this->verify->getLastError(), '233');
+    }
+
+    public function testMultiRule2() {
+        $this->verify->addData([
+            'empty' => '', 'user' => ''
+        ]);
+        $this->verify->addRule([
+            'empty' => ['empty' => [false, '233']],
+            'user' => ['empty' => false]
+        ]);
+        self::assertEquals($this->verify->check(false), false);
+        self::assertEquals(sizeof($this->verify->getErrorList()), 2);
+        self::assertEquals($this->verify->getLastError(), 'user不能为空');
+        self::assertEquals($this->verify->getLastError(), '233');
+    }
+
     public function testEmpty() {
         $this->verify->addData('emp', '');
         $this->verify->addRule('emp')->empty();
@@ -28,14 +69,19 @@ class VerifyTest extends TestCase {
     }
 
     public function testEmpty1() {
-        $this->verify->addRule('emp')->empty(false);
+        $a = new Rule();
+        $this->verify->addRule('emp')->empty(false, function () use ($a) {
+            return $a;
+        });
         self::assertEquals($this->verify->check(), false);
+        self::assertEquals($this->verify->getLastError(), $a);
     }
 
     public function testEmpty2() {
         $this->verify->addData('emp', '');
-        $this->verify->addRule('emp')->empty(false);
+        $this->verify->addRule('emp')->empty(false, '错误信息');
         self::assertEquals($this->verify->check(), false);
+        self::assertEquals($this->verify->getLastError(), '错误信息');
     }
 
     public function testEmpty3() {
