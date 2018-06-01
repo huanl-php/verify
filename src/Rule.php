@@ -42,12 +42,23 @@ class Rule {
      */
     protected $checkErrorMsg = '';
 
-    public function __construct($rule = [], $label = '') {
-        $this->label = $label;
-        //对规则进行处理
-        foreach ($rule as $key => $item) {
-            if (!is_array($item)) $item = [$item];
-            call_user_func_array([$this, $key], $item);
+    /**
+     * 验证类
+     * @var Verify
+     */
+    protected $verify = null;
+
+    public function __construct($rule = [], $label = '', Verify $verify = null) {
+        if (func_num_args() == 1) {
+            $this->verify = $rule;
+        } else {
+            $this->label = $label;
+            $this->verify = $verify;
+            //对规则进行处理
+            foreach ($rule as $key => $item) {
+                if (!is_array($item)) $item = [$item];
+                call_user_func_array([$this, $key], $item);
+            }
         }
     }
 
@@ -63,33 +74,120 @@ class Rule {
             //如果为空就不继续往下执行了
             $this->checkErrorMsg = 'empty';
             return false;
-        } else if (!$this->checkRegex()) {
-            $this->checkErrorMsg = 'regex';
-            return false;
-        } else if (!$this->checkLength()) {
-            $this->checkErrorMsg = 'length';
-            return false;
+        }
+        $emptyRule = null;
+        if ($this->issetRule('empty')) {
+            $emptyRule = $this->rule['empty'];
+            unset($this->rule['empty']);
+        }
+        foreach ($this->rule as $key => $value) {
+            if (!call_user_func_array([$this, 'check' . $key], [])) {
+                $this->checkErrorMsg = $key;
+                return false;
+            }
+        }
+        if (!is_null($emptyRule)) {
+            $this->rule['empty'] = $emptyRule;
         }
         return true;
     }
 
     /**
-     * 添加正则验证
+     * 相等
+     * @param string $val
+     * @param string $msg
+     * @return Rule
+     */
+    public function equal(string $val, $msg = ''): Rule {
+        $this->defaultMsg($msg, $this->alias() . '不相等');
+        return $this->rule('equal', $val, $msg);
+    }
+
+    /**
+     * 相等验证
+     * @return bool
+     */
+    protected function checkEqual(): bool {
+        if ($this->issetRule('equal')) {
+            return $this->data === $this->getParam($this->rule['equal']);
+        }
+        return true;
+    }
+
+    /**
+     * 正则验证
      * @param string $regex
      * @param $msg
      * @return Rule
      */
-    public function regex(string $regex = '', $msg = ''): Rule {
-        if (empty($msg)) {
-            $msg = $this->alias() . '不符合格式';
-        }
+    public function regex(string $regex, $msg = ''): Rule {
+        $this->defaultMsg($msg, $this->alias() . '不符合格式');
         return $this->rule('regex', $regex, $msg);
     }
 
-    public function length($length, $msg = '') {
-        if (empty($msg)) {
-            $msg = $this->alias . '不符合长度要求';
+    /**
+     * 数字范围
+     * @param $range
+     * @param string $msg
+     * @return Rule
+     */
+    public function range($range, $msg = ''): Rule {
+        $this->defaultMsg($msg, $this->alias() . '不在范围内');
+        return $this->rule('range', $range, $msg);
+    }
+
+    /**
+     * 验证数字范围
+     * @return bool
+     */
+    protected function checkRange(): bool {
+        if ($this->issetRule('range')) {
+            return $this->inRange($this->data, $this->rule['range']);
         }
+        return true;
+    }
+
+    /**
+     * 在其中
+     * @param array $in
+     * @param string $msg
+     * @return Rule
+     */
+    public function in(array $in, $msg = ''): Rule {
+        $this->defaultMsg($msg, $this->alias() . '不在选项中');
+        return $this->rule('in', $in, $msg);
+    }
+
+    /**
+     * 验证在其中
+     * @return bool
+     */
+    public function checkIn(): bool {
+        if ($this->issetRule('in')) {
+            return in_array($this->data, $this->rule['in']);
+        }
+        return true;
+    }
+
+    /**
+     * 默认的信息
+     * @param string $msg
+     * @param string $default
+     * @return String
+     */
+    protected function defaultMsg(string &$msg, string $default = ''): String {
+        if (empty($msg)) $msg = $default;
+        return $msg;
+    }
+
+    /**
+     * 文本长度
+     * @param $length
+     * @param string $msg
+     * @return Rule
+     */
+    public function length($length, $msg = '') {
+        $this->defaultMsg($msg, $this->alias() . '不符合长度要求');
         return $this->rule('length', $length, $msg);
     }
 
@@ -100,19 +198,30 @@ class Rule {
     protected function checkLength(): bool {
         if ($this->issetRule('length')) {
             $len = strlen($this->data);
-            if (is_array($this->rule['length'])) {
-                //数组的为范围 [min,max]
-                if ($len < $this->rule['length'][0]) {
-                    //比min要小
-                    return false;
-                } else if ($len > $this->rule[$this->length()][1]) {
-                    //比max要大
-                    return false;
-                }
-                return true;
-            } else if ($len > $this->rule['length']) {
+            return $this->inRange($len, $this->rule['length']);
+        }
+        return true;
+    }
+
+    /**
+     * 是否在范围内
+     * @param $size
+     * @param $range
+     * @return bool
+     */
+    protected function inRange($size, $range): bool {
+        if (is_array($range)) {
+            //数组的为范围 [min,max]
+            if ($size < $range[0]) {
+                //比min要小
+                return false;
+            } else if ($size > $range[1]) {
+                //比max要大
                 return false;
             }
+            return true;
+        } else if ($size > $range) {
+            return false;
         }
         return true;
     }
@@ -157,7 +266,9 @@ class Rule {
      * @return $this|string
      */
     public function alias($alias = '') {
-        if (empty($alias)) return $this->label;
+        if (empty($alias)) {
+            return $this->alias ?: $this->label;
+        }
         $this->alias = $alias;
         return $this;
     }
@@ -169,10 +280,20 @@ class Rule {
      * @return Rule
      */
     public function empty($allow = true, $msg = ''): Rule {
-        if (empty($msg)) {
-            $msg = $this->alias() . '不能为空';
-        }
+        $this->defaultMsg($msg, $this->alias() . '不能为空');
         return $this->rule('empty', $allow, $msg);
+    }
+
+    /**
+     * 从Verify中获取参数
+     * @param $name
+     * @return mixed
+     */
+    protected function getParam($name) {
+        if (substr($name, 0, 1) === ':') {
+            return $this->verify->getCheckData(substr($name, 1));
+        }
+        return $name;
     }
 
     /**
@@ -182,7 +303,7 @@ class Rule {
      * @param $msg
      * @return Rule
      */
-    public function rule(string $rule, $judge, $msg): Rule {
+    protected function rule(string $rule, $judge, $msg): Rule {
         $this->rule[$rule] = $judge;
         $this->errorMsg[$rule] = $msg;
         return $this;

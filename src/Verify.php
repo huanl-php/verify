@@ -28,7 +28,7 @@ class Verify {
      * Verify constructor.
      * @param array $data
      */
-    public function __construct(array $data = [], array $rules = []) {
+    public function __construct(array $rules = [], array $data = []) {
         $this->checkData = $data;
         $this->checkRules = $rules;
     }
@@ -45,6 +45,17 @@ class Verify {
         } else {
             $this->checkData[$key] = $data;
         }
+        return $this;
+    }
+
+    /**
+     * 修改校验数据
+     * @param $key
+     * @param $val
+     * @return Verify
+     */
+    public function setCheckData($key, $val): Verify {
+        $this->checkData[$key] = $val;
         return $this;
     }
 
@@ -82,6 +93,17 @@ class Verify {
             }
         }
         return $retState;
+    }
+
+    /**
+     * 获取数据
+     * @param string $key
+     * @return bool|mixed
+     */
+    public function getCheckData(string $key = '') {
+        if (empty($key))
+            return $this->checkData;
+        return $this->checkData[$key] ?? false;
     }
 
     /**
