@@ -4,6 +4,8 @@
 namespace HuanL\Verify;
 
 
+use HuanL\Container\Container;
+
 class Rule {
 
     /**
@@ -123,6 +125,33 @@ class Rule {
     public function regex(string $regex, $msg = ''): Rule {
         $this->defaultMsg($msg, $this->alias() . '不符合格式');
         return $this->rule('regex', $regex, $msg);
+    }
+
+    /**
+     * 自定义方法
+     * @param $func
+     * @param $msg
+     * @return Rule
+     */
+    public function func($func, $msg): Rule {
+        $this->defaultMsg($msg, $this->alias() . '验证没有通过');
+        return $this->rule('func', $func, $msg);
+    }
+
+    /**
+     * 验证自定义方法
+     * @return bool
+     */
+    protected function checkFunc(): bool {
+        if ($this->issetRule('func')) {
+            $ret = call_user_func_array($this->rule['func'], [$this->data, $this]);
+            if (is_string($ret)) {
+                $this->errorMsg['func'] = $ret;
+                return false;
+            }
+            return $ret;
+        }
+        return true;
     }
 
     /**
@@ -289,7 +318,7 @@ class Rule {
      * @param $name
      * @return mixed
      */
-    protected function getParam($name) {
+    public function getParam($name) {
         if (substr($name, 0, 1) === ':') {
             return $this->verify->getCheckData(substr($name, 1));
         }

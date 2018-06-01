@@ -86,7 +86,7 @@ class Verify {
         $retState = true;
         //遍历规则
         foreach ($this->checkRules as $key => $item) {
-            if (!$item->check($this->checkData[$key] ?? '')) {
+            if ($item->check($this->checkData[$key] ?? '') === false) {
                 array_push($this->errorStack, $item);
                 $retState = false;
                 if ($meet) return false;

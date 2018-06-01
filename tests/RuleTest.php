@@ -77,4 +77,20 @@ class RuleTest extends TestCase {
         self::assertEquals($this->rule->check('qwe123'), false);
         self::assertEquals($this->rule->getErrorMsg(), '两次输入的密码不同');
     }
+
+    public function testFunc() {
+        $v = new Verify();
+        $v->addData(['pwd' => 'qwe123', 'ag' => 'qwe123']);
+        $this->rule = new Rule($v);
+        $this->rule->func(function ($data, Rule $rule) {
+            if ($data === $rule->getParam(':ag')) {
+                return true;
+            }
+            return '密码不同';
+        }, '两次输入的密码不同');
+        self::assertEquals($this->rule->check('qwe123'), true);
+        $v->setCheckData('ag', 'qqqqqqq');
+        self::assertEquals($this->rule->check('qwe123'), false);
+        self::assertEquals($this->rule->getErrorMsg(), '密码不同');
+    }
 }
