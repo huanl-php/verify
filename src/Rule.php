@@ -101,7 +101,7 @@ class Rule {
      * @return Rule
      */
     public function equal(string $val, $msg = ''): Rule {
-        $this->defaultMsg($msg, $this->alias() . '不相等');
+        $this->defaultMsg($msg, '{$alias}不相等');
         return $this->rule('equal', $val, $msg);
     }
 
@@ -123,7 +123,7 @@ class Rule {
      * @return Rule
      */
     public function regex(string $regex, $msg = ''): Rule {
-        $this->defaultMsg($msg, $this->alias() . '不符合格式');
+        $this->defaultMsg($msg, '{$alias}不符合格式');
         return $this->rule('regex', $regex, $msg);
     }
 
@@ -133,8 +133,8 @@ class Rule {
      * @param $msg
      * @return Rule
      */
-    public function func($func, $msg): Rule {
-        $this->defaultMsg($msg, $this->alias() . '验证没有通过');
+    public function func($func, $msg = ''): Rule {
+        $this->defaultMsg($msg, '{$alias}验证没有通过');
         return $this->rule('func', $func, $msg);
     }
 
@@ -161,7 +161,7 @@ class Rule {
      * @return Rule
      */
     public function range($range, $msg = ''): Rule {
-        $this->defaultMsg($msg, $this->alias() . '不在范围内');
+        $this->defaultMsg($msg, '{$alias}不在范围内');
         return $this->rule('range', $range, $msg);
     }
 
@@ -183,7 +183,7 @@ class Rule {
      * @return Rule
      */
     public function in(array $in, $msg = ''): Rule {
-        $this->defaultMsg($msg, $this->alias() . '不在选项中');
+        $this->defaultMsg($msg, '{$alias}不在选项中');
         return $this->rule('in', $in, $msg);
     }
 
@@ -216,7 +216,7 @@ class Rule {
      * @return Rule
      */
     public function length($length, $msg = '') {
-        $this->defaultMsg($msg, $this->alias() . '不符合长度要求');
+        $this->defaultMsg($msg, '{$alias}不符合长度要求');
         return $this->rule('length', $length, $msg);
     }
 
@@ -309,7 +309,7 @@ class Rule {
      * @return Rule
      */
     public function empty($allow = true, $msg = ''): Rule {
-        $this->defaultMsg($msg, $this->alias() . '不能为空');
+        $this->defaultMsg($msg, '{$alias}不能为空');
         return $this->rule('empty', $allow, $msg);
     }
 
@@ -348,6 +348,7 @@ class Rule {
             //匿名函数
             return $error($this->data, $this);
         }
+        $error = str_replace('{$alias}', $this->alias(), $error);
         return $error;
     }
 

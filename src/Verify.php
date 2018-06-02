@@ -19,10 +19,10 @@ class Verify {
     private $checkRules = [];
 
     /**
-     * 错误列表数组栈
+     * 错误列表数组队列
      * @var array
      */
-    private $errorStack = [];
+    private $errorQueue = [];
 
     /**
      * Verify constructor.
@@ -72,8 +72,13 @@ class Verify {
             }
             return $this;
         } else {
-            $this->checkRules[$key] = (new Rule($rule, $key));
-            return $this->checkRules[$key];
+            $alias = '';
+            if ($pos = strpos($key, ':')) {
+                $alias = substr($key, $pos + 1);
+                $key = substr($key, 0, $pos);
+            }
+            $this->checkRules[$key] = (new Rule($rule, $key, $this));
+            return $this->checkRules[$key]->alias($alias);
         }
     }
 
@@ -83,11 +88,12 @@ class Verify {
      * @return bool
      */
     public function check($meet = true): bool {
+        $this->errorQueue = [];
         $retState = true;
         //遍历规则
         foreach ($this->checkRules as $key => $item) {
             if ($item->check($this->checkData[$key] ?? '') === false) {
-                array_push($this->errorStack, $item);
+                array_push($this->errorQueue, $item);
                 $retState = false;
                 if ($meet) return false;
             }
@@ -111,7 +117,7 @@ class Verify {
      * @return array
      */
     public function getErrorList(): array {
-        return $this->errorStack;
+        return $this->errorQueue;
     }
 
     /**
@@ -120,7 +126,7 @@ class Verify {
      */
     public function getLastError() {
         /** @var Rule $error */
-        $error = array_pop($this->errorStack);
+        $error = array_shift($this->errorQueue);
         return is_null($error) ? null : $error->getErrorMsg();
     }
 
@@ -130,7 +136,7 @@ class Verify {
      */
     public function getLastErrorRule(): Rule {
         /** @var Rule $error */
-        $error = array_pop($this->errorStack);
+        $error = array_pop($this->errorQueue);
         return is_null($error) ? null : $error;
     }
 

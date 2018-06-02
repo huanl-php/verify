@@ -3,12 +3,14 @@
 
 namespace HuanL\Verify\Tests;
 
+use HuanL\Verify\MathHelp;
 use HuanL\Verify\Rule;
 use HuanL\Verify\Verify;
 use PHPUnit\Framework\TestCase;
 
 require_once './../src/Verify.php';
 require_once './../src/Rule.php';
+require_once './../src/MathHelp.php';
 
 class VerifyTest extends TestCase {
 
@@ -93,5 +95,34 @@ class VerifyTest extends TestCase {
     public function testEmpty4() {
         $this->verify->addRule('emp')->empty();
         self::assertEquals($this->verify->check(), true);
+    }
+
+    public function testUserReg() {
+        $this->verify->addData([
+            'user' => '幻令',
+            'pwd' => '密码123456',
+            'again' => '密码123456',
+            'email' => 'code.farmer@qq.com'
+        ]);
+        $this->verify->addRule([
+            'user:用户名' => ['length' => [[2, 8]], 'func' => function ($user) {
+                if ($user == '幻令') return '已经被注册过了';
+                return true;
+            }],
+            'pwd:密码' => ['length' => [[6,16]], 'regex' => MathHelp::PASSWORD],
+            'again:再输入一次' => ['equal' => [':pwd','两次密码不相等']],
+            'email:邮箱' => ['regex' => MathHelp::EMAIL]
+        ]);
+        self::assertEquals($this->verify->check(false), false);
+        self::assertEquals($this->verify->getLastError(),'已经被注册过了');
+        self::assertEquals($this->verify->getLastError(),'密码不符合格式');
+        $this->verify->setCheckData('user','qwe123');
+        self::assertEquals($this->verify->check(true), false);
+        self::assertEquals($this->verify->getLastError(),'密码不符合格式');
+        $this->verify->setCheckData('pwd','qwe123');
+        self::assertEquals($this->verify->check(true), false);
+        self::assertEquals($this->verify->getLastError(),'两次密码不相等');
+        $this->verify->setCheckData('again','qwe123');
+        self::assertEquals($this->verify->check(true), true);
     }
 }
