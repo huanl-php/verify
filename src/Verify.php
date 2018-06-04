@@ -78,7 +78,8 @@ class Verify {
                 $key = substr($key, 0, $pos);
             }
             $this->checkRules[$key] = (new Rule($rule, $key, $this));
-            return $this->checkRules[$key]->alias($alias);
+            $this->checkRules[$key]->alias($alias);
+            return $this->checkRules[$key];
         }
     }
 

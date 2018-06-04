@@ -202,9 +202,9 @@ class Rule {
      * 默认的信息
      * @param string $msg
      * @param string $default
-     * @return String
+     * @return mixed
      */
-    protected function defaultMsg(string &$msg, string $default = ''): String {
+    protected function defaultMsg(&$msg, string $default = '') {
         if (empty($msg)) $msg = $default;
         return $msg;
     }

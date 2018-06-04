@@ -60,8 +60,8 @@ class VerifyTest extends TestCase {
         ]);
         self::assertEquals($this->verify->check(false), false);
         self::assertEquals(sizeof($this->verify->getErrorList()), 2);
-        self::assertEquals($this->verify->getLastError(), 'user不能为空');
         self::assertEquals($this->verify->getLastError(), '233');
+        self::assertEquals($this->verify->getLastError(), 'user不能为空');
     }
 
     public function testEmpty() {
@@ -109,20 +109,20 @@ class VerifyTest extends TestCase {
                 if ($user == '幻令') return '已经被注册过了';
                 return true;
             }],
-            'pwd:密码' => ['length' => [[6,16]], 'regex' => MathHelp::PASSWORD],
-            'again:再输入一次' => ['equal' => [':pwd','两次密码不相等']],
+            'pwd:密码' => ['length' => [[6, 16]], 'regex' => MathHelp::PASSWORD],
+            'again:再输入一次' => ['equal' => [':pwd', '两次密码不相等']],
             'email:邮箱' => ['regex' => MathHelp::EMAIL]
         ]);
         self::assertEquals($this->verify->check(false), false);
-        self::assertEquals($this->verify->getLastError(),'已经被注册过了');
-        self::assertEquals($this->verify->getLastError(),'密码不符合格式');
-        $this->verify->setCheckData('user','qwe123');
+        self::assertEquals($this->verify->getLastError(), '已经被注册过了');
+        self::assertEquals($this->verify->getLastError(), '密码不符合格式');
+        $this->verify->setCheckData('user', 'qwe123');
         self::assertEquals($this->verify->check(true), false);
-        self::assertEquals($this->verify->getLastError(),'密码不符合格式');
-        $this->verify->setCheckData('pwd','qwe123');
+        self::assertEquals($this->verify->getLastError(), '密码不符合格式');
+        $this->verify->setCheckData('pwd', 'qwe123');
         self::assertEquals($this->verify->check(true), false);
-        self::assertEquals($this->verify->getLastError(),'两次密码不相等');
-        $this->verify->setCheckData('again','qwe123');
+        self::assertEquals($this->verify->getLastError(), '两次密码不相等');
+        $this->verify->setCheckData('again', 'qwe123');
         self::assertEquals($this->verify->check(true), true);
     }
 }
