@@ -304,11 +304,15 @@ class Rule {
 
     /**
      * 是否允许为空
-     * @param bool $allow
+     * @param $allow
      * @param $msg
      * @return Rule
      */
     public function empty($allow = true, $msg = ''): Rule {
+        if (func_get_arg() == 1) {
+            $msg = $allow;
+            $allow = false;
+        }
         $this->defaultMsg($msg, '{$alias}不能为空');
         return $this->rule('empty', $allow, $msg);
     }
@@ -335,6 +339,23 @@ class Rule {
     protected function rule(string $rule, $judge, $msg): Rule {
         $this->rule[$rule] = $judge;
         $this->errorMsg[$rule] = $msg;
+        return $this;
+    }
+
+    /**
+     * 获取规则
+     * @return array
+     */
+    public function getRule(): array {
+        return $this->rule;
+    }
+
+    /**
+     * 设置规则
+     * @param array $rule
+     */
+    public function setRule(array $rule): Rule {
+        $this->rule = $rule;
         return $this;
     }
 

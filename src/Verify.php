@@ -84,6 +84,26 @@ class Verify {
     }
 
     /**
+     * 获取验证规则
+     * @return array
+     */
+    public function getCheckRule(): array {
+        return $this->checkRules;
+    }
+
+    /**
+     * 获取规则数组
+     * @return array
+     */
+    public function getArrayRule(): array {
+        $retArray = [];
+        foreach ($this->checkRules as $key => $item) {
+            $retArray[$key] = $item->getRule();
+        }
+        return $retArray;
+    }
+
+    /**
      * 对数据进行验证,当$meet为true时,遇到错误就直接返回不对后面的在判断
      * @param bool $meet
      * @return bool
