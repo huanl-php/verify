@@ -25,6 +25,12 @@ class Verify {
     private $errorQueue = [];
 
     /**
+     * 绑定的对象
+     * @var ICheckDataObject
+     */
+    private $object = null;
+
+    /**
      * Verify constructor.
      * @param array $data
      */
@@ -39,7 +45,7 @@ class Verify {
      * @param $data
      * @return Verify
      */
-    public function addData($key, $data = ''): Verify {
+    public function addCheckData($key, $data = ''): Verify {
         if (is_array($key)) {
             $this->checkData = array_merge($this->checkData, $key);
         } else {
@@ -54,8 +60,12 @@ class Verify {
      * @param $val
      * @return Verify
      */
-    public function setCheckData($key, $val): Verify {
-        $this->checkData[$key] = $val;
+    public function setCheckData($key, $val = ''): Verify {
+        if (is_array($key)) {
+            $this->checkData = $key;
+        } else {
+            $this->checkData[$key] = $val;
+        }
         return $this;
     }
 
@@ -65,10 +75,10 @@ class Verify {
      * @param array $rule
      * @return Rule|Verify
      */
-    public function addRule($key, array $rule = []) {
+    public function addCheckRule($key, array $rule = []) {
         if (is_array($key)) {
             foreach ($key as $k => $item) {
-                $this->addRule($k, $item);
+                $this->addCheckRule($k, $item);
             }
             return $this;
         } else if ($key instanceof Rule) {
@@ -115,7 +125,7 @@ class Verify {
         $retState = true;
         //遍历规则
         foreach ($this->checkRules as $key => $item) {
-            if ($item->check($this->checkData[$key] ?? '') === false) {
+            if ($item->check($this->getCheckData($key)) === false) {
                 array_push($this->errorQueue, $item);
                 $retState = false;
                 if ($meet) return false;
@@ -132,7 +142,7 @@ class Verify {
     public function getCheckData(string $key = '') {
         if (empty($key))
             return $this->checkData;
-        return $this->checkData[$key] ?? false;
+        return $this->checkData[$key] ?? (empty($this->object) ? false : $this->object->getCheckData($key));
     }
 
     /**
@@ -163,4 +173,13 @@ class Verify {
         return is_null($error) ? null : $error;
     }
 
+    /**
+     * 绑定数据对象
+     * @param ICheckDataObject $verifyObject
+     * @return ICheckDataObject
+     */
+    public function bindObject(ICheckDataObject $verifyObject): ICheckDataObject {
+        return $this->object = $verifyObject;
+
+    }
 }

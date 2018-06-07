@@ -3,6 +3,7 @@
 
 namespace HuanL\Verify\Tests;
 
+use HuanL\Verify\ICheckDataObject;
 use HuanL\Verify\MathHelp;
 use HuanL\Verify\Rule;
 use HuanL\Verify\Verify;
@@ -25,10 +26,10 @@ class VerifyTest extends TestCase {
     }
 
     public function testMultiRule() {
-        $this->verify->addData([
+        $this->verify->addCheckData([
             'empty' => '123', 'user' => 'aaa'
         ]);
-        $this->verify->addRule([
+        $this->verify->addCheckRule([
             'empty' => ['empty' => [false, '233']],
             'user' => ['empty' => false]
         ]);
@@ -38,10 +39,10 @@ class VerifyTest extends TestCase {
     }
 
     public function testMultiRule1() {
-        $this->verify->addData([
+        $this->verify->addCheckData([
             'empty' => '', 'user' => 'aaa'
         ]);
-        $this->verify->addRule([
+        $this->verify->addCheckRule([
             'empty' => ['empty' => [false, '233']],
             'user' => ['empty' => false]
         ]);
@@ -51,10 +52,10 @@ class VerifyTest extends TestCase {
     }
 
     public function testMultiRule2() {
-        $this->verify->addData([
+        $this->verify->addCheckData([
             'empty' => '', 'user' => ''
         ]);
-        $this->verify->addRule([
+        $this->verify->addCheckRule([
             'empty' => ['empty' => [false, '233']],
             'user' => ['empty' => false]
         ]);
@@ -65,14 +66,14 @@ class VerifyTest extends TestCase {
     }
 
     public function testEmpty() {
-        $this->verify->addData('emp', '');
-        $this->verify->addRule('emp')->empty();
+        $this->verify->addCheckData('emp', '');
+        $this->verify->addCheckRule('emp')->empty();
         self::assertEquals($this->verify->check(), true);
     }
 
     public function testEmpty1() {
         $a = new Rule();
-        $this->verify->addRule('emp')->empty(false, function () use ($a) {
+        $this->verify->addCheckRule('emp')->empty(false, function () use ($a) {
             return $a;
         });
         self::assertEquals($this->verify->check(), false);
@@ -80,31 +81,31 @@ class VerifyTest extends TestCase {
     }
 
     public function testEmpty2() {
-        $this->verify->addData('emp', '');
-        $this->verify->addRule('emp')->empty(false, '错误信息');
+        $this->verify->addCheckData('emp', '');
+        $this->verify->addCheckRule('emp')->empty(false, '错误信息');
         self::assertEquals($this->verify->check(), false);
         self::assertEquals($this->verify->getLastError(), '错误信息');
     }
 
     public function testEmpty3() {
-        $this->verify->addData('emp', '123');
-        $this->verify->addRule('emp')->empty(false);
+        $this->verify->addCheckData('emp', '123');
+        $this->verify->addCheckRule('emp')->empty(false);
         self::assertEquals($this->verify->check(), true);
     }
 
     public function testEmpty4() {
-        $this->verify->addRule('emp')->empty();
+        $this->verify->addCheckRule('emp')->empty();
         self::assertEquals($this->verify->check(), true);
     }
 
     public function testUserReg() {
-        $this->verify->addData([
+        $this->verify->addCheckData([
             'user' => '幻令',
             'pwd' => '密码123456',
             'again' => '密码123456',
             'email' => 'code.farmer@qq.com'
         ]);
-        $this->verify->addRule([
+        $this->verify->addCheckRule([
             'user:用户名' => ['length' => [[2, 8]], 'func' => function ($user) {
                 if ($user == '幻令') return '已经被注册过了';
                 return true;
@@ -125,4 +126,33 @@ class VerifyTest extends TestCase {
         $this->verify->setCheckData('again', 'qwe123');
         self::assertEquals($this->verify->check(true), true);
     }
+
+    public function testObject() {
+        $obj = new testObj();
+        $this->verify->bindObject($obj);
+        $this->verify->addCheckRule([
+            'user' => ['length' => [[3, 8], '长度不正确']]
+        ]);
+        $obj->user = "23113";
+        self::assertEquals($this->verify->check(true), true);
+        $obj->user = "231切2的13";
+        self::assertEquals($this->verify->check(true), false);
+    }
 }
+
+class testObj implements ICheckDataObject {
+
+    public $user;
+
+    public function setCheckData($key, $val): ICheckDataObject {
+        // TODO: Implement setCheckData() method.
+        $this->$key = $val;
+        return $this;
+    }
+
+    public function getCheckData($key) {
+        // TODO: Implement getCheckData() method.
+        return $this->$key;
+    }
+}
+
