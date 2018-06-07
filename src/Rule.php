@@ -5,6 +5,7 @@ namespace HuanL\Verify;
 
 
 use HuanL\Container\Container;
+use function Sodium\add;
 
 class Rule {
 
@@ -57,11 +58,26 @@ class Rule {
             $this->label = $label;
             $this->verify = $verify;
             //对规则进行处理
-            foreach ($rule as $key => $item) {
-                if (!is_array($item)) $item = [$item];
-                call_user_func_array([$this, $key], $item);
-            }
+            $this->addRule($rule);
         }
+    }
+
+    /**
+     * 添加规则
+     * @param $key
+     * @param array $rule
+     * @return Rule
+     */
+    public function addRule($key, array $rule = []): Rule {
+        if (is_array($key)) {
+            foreach ($key as $k => $item) {
+                if (!is_array($item)) $item = [$item];
+                call_user_func_array([$this, $k], $item);
+            }
+        } else {
+            call_user_func_array([$this, $key], $rule);
+        }
+        return $this;
     }
 
     /**
@@ -309,7 +325,7 @@ class Rule {
      * @return Rule
      */
     public function empty($allow = true, $msg = ''): Rule {
-        if (func_get_arg() == 1) {
+        if (func_num_args() == 1) {
             $msg = $allow;
             $allow = false;
         }
