@@ -12,14 +12,14 @@ interface ICheckDataObject {
      * @param $val
      * @return mixed
      */
-    public function setCheckData($key, $val): ICheckDataObject;
+    public function setCheckData($key, string $val = ''): ICheckDataObject;
 
     /**
      * 获取校验数据
      * @param $key
-     * @return mixed
+     * @return string
      */
-    public function getCheckData($key);
+    public function getCheckData($key): string;
 
 
 }

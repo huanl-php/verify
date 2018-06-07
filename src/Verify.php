@@ -137,12 +137,12 @@ class Verify {
     /**
      * 获取数据
      * @param string $key
-     * @return bool|mixed
+     * @return mixed
      */
     public function getCheckData(string $key = '') {
         if (empty($key))
             return $this->checkData;
-        return $this->checkData[$key] ?? (empty($this->object) ? false : $this->object->getCheckData($key));
+        return $this->checkData[$key] ?? (empty($this->object) ? '' : $this->object->getCheckData($key));
     }
 
     /**

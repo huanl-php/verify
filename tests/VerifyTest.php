@@ -144,13 +144,13 @@ class testObj implements ICheckDataObject {
 
     public $user;
 
-    public function setCheckData($key, $val): ICheckDataObject {
+    public function setCheckData($key, string $val = ''): ICheckDataObject {
         // TODO: Implement setCheckData() method.
         $this->$key = $val;
         return $this;
     }
 
-    public function getCheckData($key) {
+    public function getCheckData($key): string {
         // TODO: Implement getCheckData() method.
         return $this->$key;
     }
