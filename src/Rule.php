@@ -398,4 +398,12 @@ class Rule {
         $this->label = $label;
         return $this;
     }
+
+    /**
+     * 获取标签
+     * @return string
+     */
+    public function getLabel(): string {
+        return $this->label;
+    }
 }

@@ -71,6 +71,8 @@ class Verify {
                 $this->addRule($k, $item);
             }
             return $this;
+        } else if ($key instanceof Rule) {
+            return $this->checkRules[$key->getLabel()] = $key;
         } else {
             $alias = '';
             if ($pos = strpos($key, ':')) {
