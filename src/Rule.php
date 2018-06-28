@@ -232,6 +232,9 @@ class Rule {
      * @return Rule
      */
     public function length($length, $msg = '') {
+        if (strpos($length, ',')) {
+            $length = explode(',', $length);
+        }
         $this->defaultMsg($msg, '{$alias}不符合长度要求');
         return $this->rule('length', $length, $msg);
     }
@@ -363,7 +366,12 @@ class Rule {
      * @return array
      */
     public function getRule(): array {
-        return $this->rule;
+        //合并错误信息和规则数组
+        $ret = [];
+        foreach ($this->rule as $key => $value) {
+            $ret[$key] = [$value, $this->errorMsg[$key] ?? ''];
+        }
+        return $ret;
     }
 
     /**
@@ -383,7 +391,7 @@ class Rule {
         $error = $this->errorMsg[$this->checkErrorMsg];
         if ($error instanceof \Closure) {
             //匿名函数
-            return $error($this->data, $this);
+            return str_replace($error($this->data, $this), $this->alias(), $error);;
         }
         $error = str_replace('{$alias}', $this->alias(), $error);
         return $error;
