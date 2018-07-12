@@ -252,7 +252,7 @@ class Rule {
      */
     protected function checkLength(): bool {
         if ($this->issetRule('length')) {
-            $len = strlen($this->data);
+            $len = mb_strlen($this->data);
             return $this->inRange($len, $this->rule['length']);
         }
         return true;
