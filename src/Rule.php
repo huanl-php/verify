@@ -177,6 +177,11 @@ class Rule {
      * @return Rule
      */
     public function range($range, $msg = ''): Rule {
+        if (is_string($range)) {
+            if (strpos($range, ',')) {
+                $range = explode(',', $range);
+            }
+        }
         $this->defaultMsg($msg, '{$alias}不在范围内');
         return $this->rule('range', $range, $msg);
     }
@@ -232,8 +237,10 @@ class Rule {
      * @return Rule
      */
     public function length($length, $msg = '') {
-        if (strpos($length, ',')) {
-            $length = explode(',', $length);
+        if (is_string($length)) {
+            if (strpos($length, ',')) {
+                $length = explode(',', $length);
+            }
         }
         $this->defaultMsg($msg, '{$alias}不符合长度要求');
         return $this->rule('length', $length, $msg);
