@@ -82,10 +82,10 @@ class Rule {
 
     /**
      * 验证数据
-     * @param string $data
+     * @param mixed $data
      * @return bool
      */
-    public function check(string $data = ''): bool {
+    public function check($data): bool {
         $this->data = $data;
         //先验证数据是否为空和规则是否允许空
         if (!$this->checkEmpty()) {
