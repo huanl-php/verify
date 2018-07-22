@@ -93,6 +93,10 @@ class Rule {
             $this->checkErrorMsg = 'empty';
             return false;
         }
+        //如果数据是空的就直接返回
+        if (empty($this->data)) {
+            return true;
+        }
         $emptyRule = null;
         if ($this->issetRule('empty')) {
             $emptyRule = $this->rule['empty'];
